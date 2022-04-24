@@ -1,2 +1,6 @@
-UCSC CSE144 Applied machine learning course
+Applied machine learning 
+
+
+
+
 
