@@ -5,6 +5,7 @@ train_input_dir : the directory of training dataset txt file. For example 'train
 train_label_dir :  the directory of training dataset label txt file. For example 'training1_label.txt'
 test_input_dir : the directory of testing dataset label txt file. For example 'testing1.txt'
 pred_file : output directory 
+"cwd" : "${workspaceFolder}/${relativeFileDirname}" to solve filenofound
 '''
 # To compute the centroid of each class (0, 1, 2)
 # given data NxM  
@@ -84,8 +85,8 @@ def run (train_input_dir,train_label_dir,test_input_dir,pred_file):
     
 
 if __name__ == "__main__":
-    train_input_dir = "../reference/data/training1.txt"
-    train_label_dir = "../reference/data/training1_label.txt"
+    train_input_dir = "../reference/data/training2.txt"
+    train_label_dir = "../reference/data/training2_label.txt"
     test_input_dir = "../reference/data/testing1.txt"
     pred_file = 'result'
     run(train_input_dir,train_label_dir,test_input_dir,pred_file)
