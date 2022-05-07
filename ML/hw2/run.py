@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 '''
 train_input_dir : the directory of training dataset txt file. For example 'training1.txt'.
@@ -14,33 +13,6 @@ def find_centroid(data):
     # basically find the mean for each class 
     # data.shape[0] #how many rows 75x3 => 1x3
     return np.mean(data, axis = 0, dtype = 'float')
-
-# used the centroid for each class class1 and class 2 (1x3)
-# find the distance between pairs
-def boundaries(class1, class2):
-    boundaries = np.dot((class1 + class2), (class1 - class2))/2
-    return boundaries
-
-def prediction(test_data, w, t):
-    n = test_data.shape[0] #75x3 = 75
-    prediction = np.zeros((n, 1))
-    for i in range(n):
-        x = test_data[i] #1x3
-        if (np.dot(x, w[0])) > t[0]:
-            if (np.dot(x, w[1])) > t[1]:
-                prediction[i] = 0
-            else:
-                prediction[i] = 2
-        else:
-            if (np.dot(x, w[2])) > t[2]:
-                prediction[i] = 1
-            else:
-                prediction[i] = 2
-
-    # save prediction to prediction file
-    np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
-
-    return prediction
 
 def run (train_input_dir,train_label_dir,test_input_dir,pred_file):
 
@@ -91,9 +63,26 @@ def run (train_input_dir,train_label_dir,test_input_dir,pred_file):
     # load test data 
     test_data = np.loadtxt(test_input_dir, skiprows=0)
 
-    # prediction
-    prediction(test_data, w, t)
+    # predict by comapring with threshold
+    n = test_data.shape[0] #75x3 = 75
+    prediction = np.zeros((n, 1))
+    for i in range(n):
+        x = test_data[i] #1x3
+        if (np.dot(x, w[0])) > t[0]:
+            if (np.dot(x, w[1])) > t[1]:
+                prediction[i] = 0
+            else:
+                prediction[i] = 2
+        else:
+            if (np.dot(x, w[2])) > t[2]:
+                prediction[i] = 1
+            else:
+                prediction[i] = 2
+
+    # save prediction to prediction file
+    np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
     
+
 if __name__ == "__main__":
     train_input_dir = "../reference/data/training1.txt"
     train_label_dir = "../reference/data/training1_label.txt"
