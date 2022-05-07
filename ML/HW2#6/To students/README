@@ -1,0 +1,27 @@
+Dear students, 
+
+Please read this file and to homework discription discription clearly before doing anything else. Miss understanding the setting or 
+the meaning of data will waste your time and energy, if you still don't understanding what's going on. Go to section and office hour.
+We will be there :)
+
+Folder 'reference/data':
+In this folder you will find testing and training data for dataset 1 and 2. These dataset are randomized. These will be the two datasets you will play with offline.
+When you submit your code to CodaLab, we will run it on hidden dataset 3. 
+
+Dataset 1 2:
+3 input feature
+
+Dataset 3:
+4 input feature!
+
+Folder 'submission':
+This will be your starting kit. 
+
+Folder 'submission.zip':
+sample submission
+
+
+
+Link to CodaLab:
+
+https://competitions.codalab.org/competitions/35876?secret_key=deb3fa0a-039f-4b6f-a636-ea18b11591c8
