@@ -1,64 +1,72 @@
 import pandas as pd
 import numpy as np
-import math
-#import argparse
+import argparse
 from collections import Counter
 from utils import *
-      
 
-def main(train_dir,dev_dir,test_dir):
-    train_file = open(train_dir, encoding='utf-8')
-    dev_file = open(dev_dir, 'r')
-    test_file = open(test_dir, 'r')
-
-    # Tokenize train_file
-    tokenized_text = []
+def files_to_text(path):
+    train_file = open(path + '1b_benchmark.train.tokens', 'r')
+    dev_file = open(path + '1b_benchmark.dev.tokens', 'r')
+    test_file = open(path + '1b_benchmark.test.tokens', 'r')
+    train_text = []
+    dev_text = []
+    test_text = []
     for line in train_file:
-        tokenized_text.append(line.split())
+        train_text.append(line.split())
+    for line in dev_file:
+        dev_text.append(line.split())
+    for line in test_file:
+        test_text.append(line.split())
+    train_file.close()
+    dev_file.close()
+    test_file.close()
+    return train_text, test_text, dev_text
 
-    # preprocess train_file to create tokenMap
+def test(M, tokens):
+    print("   Unigram Perplexity:", M.unigramMLE(tokens))
+    print("   Bigram Perplexity:", M.bigramMLE(tokens))
+    print("   Trigram Perplexity:", M.trigramMLE(tokens))
+
+def main():
+    train_text, test_text, dev_text = files_to_text('./A2-Data/')
+    check_text = [["HDTV", "."]]
+
+    # initialize preprocessor with train_text
     pp = PreProcessor()
-    pp.fit(tokenized_text)
+    numTypes = pp.fit(train_text)
+    print ("Preprocessor created", numTypes, "unique tokens (types) including <STOP> and <UNK>")
 
-    # replace strings with integers for faster computation
-    tokenized_text, counts = pp.transform_list(tokenized_text)
-    # for line in tokenized_text:
-    #     for word in line:
-    #         print(pp.tokenList[word])
+    # tokenize text with preprocessor
+    train_tokens = pp.process(train_text)
+    test_tokens = pp.process(test_text)
+    dev_tokens = pp.process(dev_text)
+    check_tokens = pp.process(check_text)
 
-    # feat_extractor = NgramFeature(3)
-    # feat_extractor.fit(tokenized_text)
-    # print(len(feat_extractor.ngram))
+    # initialize MLE with train_tokens
+    print("\ninitializing MLE")
+    M = MLE()
+    M.fit(train_tokens)
 
-    # X_train = feat_extractor.transform_list(tokenized_text)
-    # print(X_train)
-    features = (NgramFeature(1), NgramFeature(2), NgramFeature(3))
-    ngramTotals = tuple() # contains integer for the total number of ngrams
-    ngramTotalCounts = tuple() # contains array index = ngramNum, value = num of occurences
-    ngramCounts = tuple() # contains array of counters, 1 counter for each sentence, key = ngramNum, value = num of occurences
+    # tests
+    print("\nTesting MLE on: train_text")
+    test(M, train_tokens)
+    print("\nTesting MLE on: dev_text")
+    test(M, dev_tokens)
+    print("\nTesting MLE on:", check_text)
+    test(M, check_tokens)
 
-    for feature in features:
-        feature.fit(tokenized_text)
-        ngramCount = feature.transform_list(tokenized_text)
-        ngramCounts += (ngramCount,)
-        total = 0
-        ngramTotalCount = np.zeros(len(feature.ngram))
-        for count in ngramCount:
-            for index in count:
-                ngramTotalCount[index] += count[index]
-                total += count[index]
-        ngramTotalCounts += (ngramTotalCount,)
-        ngramTotals += (total,)
+    # now with smoothing
+    for i in [1, 0.01, 0.0001]:
+        print("\ninitializing MLE with +" + str(i) + " smoothing")
+        M.fit(train_tokens, i)
+        # tests
+        print("\nTesting MLE sm+" + str(i) + " on: train_text")
+        test(M, train_tokens)
+        print("\nTesting MLE sm+" + str(i) + " on: dev_text")
+        test(M, dev_tokens)
 
-    #calculate MLE for each sentence
-    mle = MLE(features, ngramTotalCounts, ngramCounts, ngramTotals)
-    unigramTotal = mle.unigramPerplexity()
 
-    print("unigram_perplexity: ", unigramTotal)
 
-    #calculate Perplexity
+
 if __name__ == '__main__':
-    train_dir = "1b_benchmark.train.tokens"
-    dev_dir = "1b_benchmark.dev.tokens"
-    test_dir = "1b_benchmark.test.tokens"
-    main(train_dir,dev_dir,test_dir)
+    main()
