@@ -2,6 +2,7 @@ from collections import Counter
 import numpy as np
 import math
 
+#
 class PreProcessor(object):
     def __init__(self):
         # key = word, value = token

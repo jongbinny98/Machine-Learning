@@ -4,22 +4,26 @@ import argparse
 from collections import Counter
 from utils import *
 
-def files_to_text(path):
-    train_file = open(path + '1b_benchmark.train.tokens', 'r')
-    dev_file = open(path + '1b_benchmark.dev.tokens', 'r')
-    test_file = open(path + '1b_benchmark.test.tokens', 'r')
+def files_to_text():
+    train_file = open('1b_benchmark.train.tokens', encoding="utf8")
+    dev_file = open('1b_benchmark.dev.tokens', encoding="utf8")
+    test_file = open('1b_benchmark.test.tokens', encoding="utf8")
+
     train_text = []
     dev_text = []
     test_text = []
+
     for line in train_file:
         train_text.append(line.split())
     for line in dev_file:
         dev_text.append(line.split())
     for line in test_file:
         test_text.append(line.split())
+
     train_file.close()
     dev_file.close()
     test_file.close()
+
     return train_text, test_text, dev_text
 
 def test(M, tokens):
@@ -28,7 +32,7 @@ def test(M, tokens):
     print("   Trigram Perplexity:", M.trigramMLE(tokens))
 
 def main():
-    train_text, test_text, dev_text = files_to_text('./A2-Data/')
+    train_text, test_text, dev_text = files_to_text()
     check_text = [["HDTV", "."]]
 
     # initialize preprocessor with train_text
@@ -64,9 +68,5 @@ def main():
         test(M, train_tokens)
         print("\nTesting MLE sm+" + str(i) + " on: dev_text")
         test(M, dev_tokens)
-
-
-
-
 if __name__ == '__main__':
     main()
