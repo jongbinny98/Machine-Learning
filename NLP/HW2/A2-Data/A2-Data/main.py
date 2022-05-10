@@ -1,69 +1,64 @@
 import pandas as pd
 import numpy as np
-import argparse
-
+import math
+#import argparse
 from collections import Counter
+from utils import *
+      
 
+def main(train_dir,dev_dir,test_dir):
+    train_file = open(train_dir, encoding='utf-8')
+    dev_file = open(dev_dir, 'r')
+    test_file = open(test_dir, 'r')
 
-#TODO: In the below function, write to a file and save so it doesnt need to be done everytime
-def preProcess(path):
-    """Tokenize each sentence and remove tokens that occur less than 3 times
-        
-        Arguments:
-            path String -- path of the file containg the data we would like to tokenize
-        
-        Returns:
-            array -- an array, where each index is a tokenized, preprocessed sentence
-    """
-    file = open(path, "r")
+    # Tokenize train_file
+    tokenized_text = []
+    for line in train_file:
+        tokenized_text.append(line.split())
 
-    # i = 0
-    lines = []
-    wordCount = Counter()
-    for line in file.readlines():
-        # if i < 1:
-        # tokenize each sentence
-        line = line.strip().split()
-        lines.append(line)
+    # preprocess train_file to create tokenMap
+    pp = PreProcessor()
+    pp.fit(tokenized_text)
 
-        #update counts of each token
-        for token in line:
-                wordCount[token] += 1
-        
-        wordCount["<STOP>"] += 1
-            # i += 1
-        
-    #loop through each sentence
-    for line in lines:
-        #loop through each token in the sentence
-        for j in range(0, len(line)):
-            if wordCount[line[j]] < 3:
-                #remove this word from the count
-                del wordCount[line[j]]
-                #update it in our data
-                line[j] = "<UNK>"
-                #increase the count
-                wordCount["<UNK>"] += 1
+    # replace strings with integers for faster computation
+    tokenized_text, counts = pp.transform_list(tokenized_text)
+    # for line in tokenized_text:
+    #     for word in line:
+    #         print(pp.tokenList[word])
 
-    
-    file.close()
-    # print(wordCount)
-    print(len(wordCount))
-    return lines
+    # feat_extractor = NgramFeature(3)
+    # feat_extractor.fit(tokenized_text)
+    # print(len(feat_extractor.ngram))
 
+    # X_train = feat_extractor.transform_list(tokenized_text)
+    # print(X_train)
+    features = (NgramFeature(1), NgramFeature(2), NgramFeature(3))
+    ngramTotals = tuple() # contains integer for the total number of ngrams
+    ngramTotalCounts = tuple() # contains array index = ngramNum, value = num of occurences
+    ngramCounts = tuple() # contains array of counters, 1 counter for each sentence, key = ngramNum, value = num of occurences
 
+    for feature in features:
+        feature.fit(tokenized_text)
+        ngramCount = feature.transform_list(tokenized_text)
+        ngramCounts += (ngramCount,)
+        total = 0
+        ngramTotalCount = np.zeros(len(feature.ngram))
+        for count in ngramCount:
+            for index in count:
+                ngramTotalCount[index] += count[index]
+                total += count[index]
+        ngramTotalCounts += (ngramTotalCount,)
+        ngramTotals += (total,)
 
+    #calculate MLE for each sentence
+    mle = MLE(features, ngramTotalCounts, ngramCounts, ngramTotals)
+    unigramTotal = mle.unigramPerplexity()
 
+    print("unigram_perplexity: ", unigramTotal)
 
-
-def main():
-
-    probabilites = {}
-    train_tokens = preProcess("./A2-Data/1b_benchmark.train.tokens")
-    
-
-    
-
-
+    #calculate Perplexity
 if __name__ == '__main__':
-    main()
+    train_dir = "1b_benchmark.train.tokens"
+    dev_dir = "1b_benchmark.dev.tokens"
+    test_dir = "1b_benchmark.test.tokens"
+    main(train_dir,dev_dir,test_dir)
