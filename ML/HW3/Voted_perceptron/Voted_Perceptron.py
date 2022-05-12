@@ -38,22 +38,24 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   # print(x_label.shape)
   # inner = np.dot(w[0], x_train[0])
   # print(inner.shape)
+  for count in range(x_label.shape[0]):
+    if x_label[count] == 0:
+      x_label[count] = -1
 
   # voted perceptron
   while t < T:
     # for each training example
-    for i in range(x_train.shape[0]):
+    for i in range(len(x_train)):
       inner = np.dot(w[k], x_train[i])
-      pred = (x_label[i] * inner)
-      if (pred <= 0).all():
-        w[k+1] = w[k] + np.dot(x_train[i], x_label[i])
+      pred = np.sign(x_label[i] * inner)
+      if (pred <= 0).all:
+        w[k+1] = np.sum(w[k], np.dot(x_label[i], x_train[i]))
         c[k+1] = c[k] + 1
         k += 1
       else:
         c[k] += 1
     t += 1
-  print(k)
-  print(i)
+
 
   # prediction
   prediction = np.zeros(test.shape[0])
