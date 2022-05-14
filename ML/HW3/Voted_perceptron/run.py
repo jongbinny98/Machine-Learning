@@ -52,21 +52,26 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
         c[k] += 1
     t += 1
 
-  print(c)
+  # print(c)
   # print(w)
 
+  print("test_label: ",test_label)
   # prediction
   prediction = np.zeros(test_data_file.shape[0])
   # print(test_data_file.shape)
   for j in range(len(test_data_file)):
     for K in range(k):
-      inner = np.dot(w[K], test_data_file[j])
+      inner = np.sign(w[K] * test_data_file[j])
     # print("inner: ", inner)
-    pred = np.sign(c[K] * inner)
-    if pred <= 0:
-      pred == 0
-    print("pred: ", pred)
-    prediction[j] = pred
+    pred = np.sign(np.sum(c[K] * inner))
+    prediction[j] = int(pred)
+
+  # change the all -1 to 0
+  for count in range(len(prediction)):
+    if prediction[count] == -1:
+      prediction[count] = 0
+
+  print(prediction)
 
   # save prediction to prediction file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
