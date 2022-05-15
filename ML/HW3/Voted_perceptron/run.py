@@ -1,6 +1,6 @@
 # import the required packages here 
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
 
@@ -111,7 +111,6 @@ def main(prediction, test_label):
 
     accuracy = (TP_0 + TP_1) / np.size(test_label)
     print("accuracy: ", accuracy)
-
 
 if __name__ == '__main__':
 
