@@ -1,23 +1,6 @@
 # import the required packages here 
 import numpy as np
-
-# def prediction(x, w, c, k, pred_file):
-
-#   prediction = np.zeros(x.shape[0])
-#   for j in range(len(x)):
-#     for K in range(k):
-#       inner = np.sign(w[K] * x[j])
-#       pred = np.sign(np.sum(c[K] * inner))
-#     prediction[j] = pred
-
-#   # change the all -1 back to 0
-#   for count in range(len(prediction)):
-#     if prediction[count] == -1:
-#       prediction[count] = 0
-
-#   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
-
-#   return pred_file
+import matplotlib.pyplot as plt
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
 
@@ -35,12 +18,30 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   x = np.loadtxt(Xtrain_file, delimiter=',')
   y = np.loadtxt(Ytrain_file, delimiter=',')
 
-  # train_test_split = int(0.9 * len(x))
-  # x_train, y_label = x[:train_test_split], y[:train_test_split]
-  # test, test_label = x[train_test_split:], y[train_test_split:]
+  train_test_split = int(0.9 * len(x))
+  x_train, y_label = x[:train_test_split], y[:train_test_split]
+  test, test_label = x[train_test_split:], y[train_test_split:]
 
-  # # test data file
-  test = np.loadtxt(test_data_file, delimiter=',')
+  #one two five ten twenty
+
+  #remaining 99 percent
+  one =  int(0.01*len(x_train))
+  train_one, label_one = x_train[:one], y_label[:one]
+  #remaining 98 percent
+  two =  int(0.02*len(x_train))
+  train_two, label_two = x_train[:two], y_label[:two]
+  #remaining 95 percent
+  five =  int(0.05*len(x_train))
+  train_five, label_five = x_train[:five], y_label[:five]
+  #remaining 90 percent
+  ten =  int(0.10*len(x_train))
+  train_ten, label_ten = x_train[:ten], y_label[:ten]
+  #remaining 80 percent
+  twenty =  int(0.20*len(x_train))
+  train_twenty, label_twenty = x_train[:twenty], y_label[:twenty]
+
+  # test data file
+  test_data_file = test
   
   # current epoch, number of epoch
   t, T = 0, 5 
@@ -49,37 +50,35 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   # weight
   c = [0]
   # classification vector 
-  w = [np.zeros(x.shape[1])]
+  w = [np.zeros(train_five.shape[1])]
 
-  for count in range(y.shape[0]):
-    if y[count] == 0:
-      y[count] = -1
+  for count in range(label_five.shape[0]):
+    if label_five[count] == 0:
+      label_five[count] = -1
 
   # voted perceptron
   while t < T:
     # for each training example
-    for i in range(len(x)):
-      inner = np.dot(w[k], x[i])
-      pred = np.sign(y[i] * inner)
+    for i in range(len(train_five)):
+      inner = np.dot(w[k], train_five[i])
+      pred = np.sign(label_five[i] * inner)
       # misclassification
       if pred <= 0:
-        w.append(w[k] + np.dot(y[i], x[i]))
+        w.append(w[k] + np.dot(y[i], train_five[i]))
         c.append(1)
         k += 1
       else:
         c[k] += 1
     t += 1
   
-  for p in range(y.shape[0]):
-    if y[p] == -1:
-      y[p] = 0
+  for p in range(label_five.shape[0]):
+    if label_five[p] == -1:
+      label_five[p] = 0
 
-  # print(prediction)
-  prediction = np.zeros(len(test))
-  # print(test.shape[0])
-  for j in range(len(test)):
+  prediction = np.zeros(len(test_data_file))
+  for j in range(len(test_data_file)):
     for K in range(k):
-      inner = np.sign(w[K] * test[j])
+      inner = np.sign(w[K] * test_data_file[j])
       pred = np.sign(np.sum(c[K] * inner))
     prediction[j] = pred
 
@@ -87,19 +86,38 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   for count in range(prediction.shape[0]):
     if prediction[count] == -1:
       prediction[count] = 0
-  # print(len(prediction))
-  # print(len(y))
-  print("compare y and pred \n", y == prediction)
-  # print("pred: \n", prediction)
-  # save prediction to prediction file
 
+  print("compare y and pred \n", test_label == prediction)
+
+  # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
+
+  main(prediction, test_label)
+
+#prediction and test_label = 10 percent truth label
+def main(prediction, test_label):
+
+    cal = np.zeros((2, 2), dtype = int)
+
+    # print in 2x2 matrix tp for 00, 11
+    for i in range (np.size(test_label)):
+        pred = int(prediction[i])
+        true = int(test_label[i])
+        cal[pred][true] += 1
+    print(cal)
+    
+    TP_0 = cal[0][0]
+    TP_1 = cal[1][1]
+
+    accuracy = (TP_0 + TP_1) / np.size(test_label)
+    print("accuracy: ", accuracy)
+
 
 if __name__ == '__main__':
 
   Xtrain_file = "Xtrain.csv"
   Ytrain_file = "Ytrain.csv"
-  test_data_file = "Xtrain.csv"
+  test_data_file = None
   pred_file = 'result'
 
   run(Xtrain_file, Ytrain_file, test_data_file, pred_file)
