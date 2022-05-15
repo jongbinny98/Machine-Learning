@@ -1,6 +1,24 @@
 # import the required packages here 
 import numpy as np
 
+# def prediction(x, w, c, k, pred_file):
+
+#   prediction = np.zeros(x.shape[0])
+#   for j in range(len(x)):
+#     for K in range(k):
+#       inner = np.sign(w[K] * x[j])
+#       pred = np.sign(np.sum(c[K] * inner))
+#     prediction[j] = pred
+
+#   # change the all -1 back to 0
+#   for count in range(len(prediction)):
+#     if prediction[count] == -1:
+#       prediction[count] = 0
+
+#   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
+
+#   return pred_file
+
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
 
   '''The function to run your ML algorithm on given datasets, generate the predictions and save them into the provided file path
@@ -17,12 +35,12 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   x = np.loadtxt(Xtrain_file, delimiter=',')
   y = np.loadtxt(Ytrain_file, delimiter=',')
 
-  train_test_split = int(0.9 * len(x))
-  x_train, y_label = x[:train_test_split], y[:train_test_split]
-  test, test_label = x[train_test_split:], y[train_test_split:]
+  # train_test_split = int(0.9 * len(x))
+  # x_train, y_label = x[:train_test_split], y[:train_test_split]
+  # test, test_label = x[train_test_split:], y[train_test_split:]
 
-  # test data file
-  test_data_file = test
+  # # test data file
+  test = np.loadtxt(test_data_file, delimiter=',')
   
   # current epoch, number of epoch
   t, T = 0, 5 
@@ -31,54 +49,57 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   # weight
   c = [0]
   # classification vector 
-  w = [np.zeros(x_train.shape[1])]
+  w = [np.zeros(x.shape[1])]
 
-  for count in range(y_label.shape[0]):
-    if y_label[count] == 0:
-      y_label[count] = -1
+  for count in range(y.shape[0]):
+    if y[count] == 0:
+      y[count] = -1
 
   # voted perceptron
   while t < T:
     # for each training example
-    for i in range(len(x_train)):
-      inner = np.dot(w[k], x_train[i])
-      pred = np.sign(y_label[i] * inner)
+    for i in range(len(x)):
+      inner = np.dot(w[k], x[i])
+      pred = np.sign(y[i] * inner)
       # misclassification
       if pred <= 0:
-        w.append(w[k] + np.dot(y_label[i], x_train[i]))
+        w.append(w[k] + np.dot(y[i], x[i]))
         c.append(1)
         k += 1
       else:
         c[k] += 1
     t += 1
+  
+  for p in range(y.shape[0]):
+    if y[p] == -1:
+      y[p] = 0
 
-  # print(c)
-  # print(w)
-
-  print("test_label: ",test_label)
-  # prediction
-  prediction = np.zeros(test_data_file.shape[0])
-  # print(test_data_file.shape)
-  for j in range(len(test_data_file)):
+  # print(prediction)
+  prediction = np.zeros(len(test))
+  # print(test.shape[0])
+  for j in range(len(test)):
     for K in range(k):
-      inner = np.sign(w[K] * test_data_file[j])
-    # print("inner: ", inner)
-    pred = np.sign(np.sum(c[K] * inner))
-    prediction[j] = int(pred)
+      inner = np.sign(w[K] * test[j])
+      pred = np.sign(np.sum(c[K] * inner))
+    prediction[j] = pred
 
-  # change the all -1 to 0
-  for count in range(len(prediction)):
+  # change the all -1 back to 0
+  for count in range(prediction.shape[0]):
     if prediction[count] == -1:
       prediction[count] = 0
-
-  print(prediction)
-
+  # print(len(prediction))
+  # print(len(y))
+  print("compare y and pred \n", y == prediction)
+  # print("pred: \n", prediction)
   # save prediction to prediction file
+
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
 
 if __name__ == '__main__':
-   Xtrain_file = "Xtrain.csv"
-   Ytrain_file = "Ytrain.csv"
-   test_data_file = None
-   pred_file = 'result'
-run(Xtrain_file, Ytrain_file, test_data_file, pred_file)
+
+  Xtrain_file = "Xtrain.csv"
+  Ytrain_file = "Ytrain.csv"
+  test_data_file = "Xtrain.csv"
+  pred_file = 'result'
+
+  run(Xtrain_file, Ytrain_file, test_data_file, pred_file)
