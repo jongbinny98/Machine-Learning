@@ -2,7 +2,6 @@ from collections import Counter
 import numpy as np
 import math
 
-#
 class PreProcessor(object):
     def __init__(self):
         # key = word, value = token
@@ -12,7 +11,7 @@ class PreProcessor(object):
         self.tokenList = ['<STOP>', '<UNK>']
 
     # creates the tokenMap and returns number of types (unique tokens)
-    def fit(self, text_set):
+    def fit(self, text_set, unkNum=0):
         # count all the words
         wordCount = Counter()
         for line in text_set:
@@ -23,7 +22,7 @@ class PreProcessor(object):
         self.__init__() # reset tokenMap and tokenList
         index = 2
         for word in wordCount:
-            if (wordCount[word] >= 3):
+            if (wordCount[word] >= unkNum):
                 self.tokenMap[word] = index
                 self.tokenList.append(word)
                 index += 1
@@ -31,20 +30,16 @@ class PreProcessor(object):
         return index
 
     # tokenizes the text
-    def process(self, text_set):
+    def tokenize(self, text_set):
         lines = []
-        for i in range(len(text_set)):
-            words = []
-            for j in range(len(text_set[i])):
-                word = text_set[i][j]
-                if word in self.tokenMap:
-                    token = self.tokenMap[word]
-                else:
-                    token = self.tokenMap['<UNK>']
-                words.append(token)
-            token = self.tokenMap['<STOP>']
-            words.append(token)
-            lines.append(words)
+        for sentence in text_set:
+            tokens = []
+            for word in sentence:
+                if not word in self.tokenMap:
+                    word = '<UNK>'
+                tokens.append(self.tokenMap[word])
+            tokens.append(self.tokenMap['<STOP>'])
+            lines.append(tokens)
         return lines
 
     # returns a string representation of an ngram
@@ -59,110 +54,130 @@ class PreProcessor(object):
         return res
 
 
-class FeatureExtractor(object):
+class MLE(object):
     def __init__(self):
-        pass
-    def fit(self, text_set):
-        pass
-    def transform(self, text):
-        pass  
-    def transform_list(self, text_set):
-        pass
-
-
-# <START> = -1, <STOP> = 0
-class NgramFeature(FeatureExtractor):
-    def __init__(self, n):
-        self.ngramCt = Counter()
-        self.totalCt = 0
-        self.n = n
         self.startToken = -1
+        self.pp = PreProcessor()
 
-    # returns a tuple with n or less tokens
-    def getNgram(self, sentence, index):
+
+    def getNgram(self, sentence, index, n):
         ngram = tuple()
-        for offset in range(1 - self.n, 1):
-            i = index + offset
+        for i in range(max(-1, index - n + 1), index + 1):
             if i == -1:
                 ngram += (self.startToken,)
-            elif i >= 0:
+            else:
                 ngram += (sentence[i],)
         return ngram
 
-    def fit(self, text_set):
-        for text in text_set:
-            for i in range(len(text)):
-                self.ngramCt[self.getNgram(text, i)] += 1
-                self.totalCt += 1
-        return len(self.ngramCt)
-
-    def transform(self, text):
-        feature = Counter()
-        for i in range(len(text)):
-            t = self.getNgram(text, i)
-            if t in self.ngramCt:
-                feature[t] += 1
-        return feature
-
-    def transform_list(self, text_set):
-        features = []
-        for text in text_set:
-            features.append(self.transform(text))
-        return features
-
-
-class MLE(object):
-    def __init__(self):
-        self.N1 = NgramFeature(1)
-        self.N2 = NgramFeature(2)
-        self.N3 = NgramFeature(3)
 
     def pNgram(self, ngram):
         return ngram[:len(ngram) - 1]
 
-    def fit(self, text_set, sm=0):
-        print("Fitting:", end="  ")
-        self.__init__() # reset N1, N2, N3
-        print(self.N1.fit(text_set), "unigram types", end=",  ")
-        print(self.N2.fit(text_set), "bigram types", end=",  ")
-        print(self.N3.fit(text_set), "trigram types")
 
-        print("Calculating N-gram Probabilities:")
-        v = len(self.N1.ngramCt) # vocab size
+    def fit(self, text_set, maxN=3, unkNum=3):
+        self.maxN = maxN
+        self.v = self.pp.fit(text_set, unkNum) # vocab size
+        self.ngramCt = Counter() # number of times each ngram occurs in the text_set
+        self.numTokens = 0 # number of tokens in the text_set
+        tokens = self.pp.tokenize(text_set)
+        for sentence in tokens:
+            self.numTokens += len(sentence)
+            for n in range(1, self.maxN + 1):
+                for i in range(n - 2, len(sentence)):
+                    self.ngramCt[self.getNgram(sentence, i, n)] += 1
+        return self.v
 
-        self.N1.ngramCt[(-1,)] = self.N1.ngramCt[(0,)] # actual bullshit but ok
 
-        self.p1 = {}
-        for n in self.N1.ngramCt:
-            self.p1[n] = np.log((self.N1.ngramCt[n] + sm) / (self.N1.totalCt + sm * v))
-        self.p2 = {}
-        for n in self.N2.ngramCt:
-            self.p2[n] = np.log((self.N2.ngramCt[n] + sm) / (self.N1.ngramCt[self.pNgram(n)] + sm * v))
-        self.p3 = {}
-        for n in self.N3.ngramCt:
-            if len(n) == 3:
-                self.p3[n] = np.log((self.N3.ngramCt[n] + sm) / (self.N2.ngramCt[self.pNgram(n)] + sm * v))
-            else:
-                self.p3[n] = self.p2[n]
+    def ngramProb(self, ngram):
+        top = self.ngramCt[ngram]
+        if len(ngram) == 1:
+            bottom = self.numTokens
+        else:
+            bottom = self.ngramCt[self.pNgram(ngram)]
+        return top, bottom
 
-    def unigramMLE(self, text_set):
-        return self.ngramMLE(text_set, self.N1, self.p1)
 
-    def bigramMLE(self, text_set):
-        return self.ngramMLE(text_set, self.N2, self.p2)
-
-    def trigramMLE(self, text_set):
-        return self.ngramMLE(text_set, self.N3, self.p3)
-
-    def ngramMLE(self, text_set, Feature, probs):
-        ngram_set = Feature.transform_list(text_set)
+    def ngramPerp(self, text_set, n):
+        tokens = self.pp.tokenize(text_set)
         logSum = 0
         length = 0
-        for sentence in ngram_set:
-            for n in sentence:
-                if n in Feature.ngramCt:
-                    logSum += sentence[n] * probs[n]
-                    length += sentence[n]
+        for sentence in tokens:
+            for i in range(len(sentence)):
+                ngram = self.getNgram(sentence, i, n)
+                top, bottom = self.ngramProb(ngram)
+                if top > 0:
+                    logSum += np.log(top / bottom)
+                    length += 1
         return np.exp(-logSum / length)
+
+
+    def ngramSmPerp(self, text_set, n, sm=1):
+        assert sm > 0
+
+        tokens = self.pp.tokenize(text_set)
+        logSum = 0
+        length = 0
+        for sentence in tokens:
+            for i in range(len(sentence)):
+                ngram = self.getNgram(sentence, i, n)
+                top, bottom = self.ngramProb(ngram)
+                logSum += np.log((top + sm) / (bottom + sm * self.v))
+            length += len(sentence)
+        return np.exp(-logSum / length)
+
+
+    def linInterpPerp(self, text_set, li=None):
+        if li == None:
+            li = [1 / self.maxN] * self.maxN
+        assert np.abs(1 - np.sum(li)) < 0.00001
+        assert len(li) == self.maxN
+
+        tokens = self.pp.tokenize(text_set)
+        logSum = 0
+        length = 0
+        for sentence in tokens:
+            for i in range(len(sentence)):
+                ngram = self.getNgram(sentence, i, self.maxN)
+                top, bottom = self.ngramProb(ngram)
+                if top > 0: # if largest ngram exists in train data, all ngrams exist in train data
+                    prob = li[self.maxN - 1] * top / bottom
+                    for n in range(1, self.maxN):
+                        ngram = self.getNgram(sentence, i, n)
+                        top, bottom = self.ngramProb(ngram)
+                        prob += li[n - 1] * top / bottom
+                    logSum += np.log(prob)
+                    length += 1
+        return np.exp(-logSum / length)
+
+
+    def linInterpSmPerp(self, text_set, li=None, sm=None):
+        if li == None:
+            li = [1 / self.maxN] * self.maxN
+        assert np.abs(1 - np.sum(li)) < 0.00001
+        assert len(li) == self.maxN
+        if sm == None:
+            sm = [1] * self.maxN
+        for a in sm:
+            assert a > 0
+        assert len(sm) == self.maxN
+
+        tokens = self.pp.tokenize(text_set)
+        logSum = 0
+        length = 0
+        for sentence in tokens:
+            for i in range(len(sentence)):
+                prob = 0
+                for n in range(1, self.maxN + 1):
+                    ngram = self.getNgram(sentence, i, n)
+                    top, bottom = self.ngramProb(ngram)
+                    prob += li[n-1] * (top + sm[n-1]) / (bottom + sm[n-1] * self.v)
+                logSum += np.log(prob)
+            length += len(sentence)
+        return np.exp(-logSum / length)
+
+
+
+
+
 
         
