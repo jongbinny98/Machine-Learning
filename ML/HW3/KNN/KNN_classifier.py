@@ -10,28 +10,36 @@ def euclidean_distance(x1, x2):
 def find_neighbors(x_train, y_label, test, k):
 
   # Predict neighbor = k-th closest neighbors
-  Predict_Neighbors = np.zeros((k))
+  Predict_Neighbors = np.zeros(k)
 
   # temp = store the distance btw x_train and test[0] point
-  temp = np.zeros((len(x_train)))
-  distance = np.zeros((len(x_train)))
-  temp = np.zeros((len(x_train)))
+  temp = np.zeros(len(x_train))
 
   # find the distance and use index to find the k-th closest neighbors
   for i in range(len(x_train)):
-    for j in range(len(test)):
-      distance[j] = euclidean_distance(x_train[i], test[j])
-      temp[i] = distance[j]
-  print(temp)
-
-  # get the index of temp 
+    distance = euclidean_distance(x_train[i], test)
+    temp[i] = distance
   index = temp.argsort()
-  print(index)
+  
   # find the k-th closest label
   for j in range(k):
-    Predict_Neighbors[j] = index[j]
+    Predict_Neighbors[j] = y_label[index[j]]
     
   return Predict_Neighbors
+
+# find the majority of labels to predict
+def find_majority(x_train, y_label, k, test, neighbors):
+  
+  print(type(neighbors[0]))
+
+  for i in range(len(test)):
+    arr = neighbors[i]
+    for j in range(1, 9):
+      if (np.count_nonzero(arr == j) != 0):
+        count = np.count_nonzero(arr == j)
+        
+  
+  # return prediction
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
 
@@ -47,16 +55,15 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   # set k-th closest
   k = 3
 
-  # find the k-th closest neighbors label
-  neighbors_label = find_neighbors(x_train, y_label, test, k)
+  # array of neighbors labels(rough before applying majority rule)
+  neighbors = []
+  for i in range(len(test)):
+    test_value = test[i, :]
+    labels = find_neighbors(x_train, y_label, test_value, k)
+    neighbors.append(labels)
 
-  print("neighbor: ", neighbors_label)
-  
-  # prediction
-  # prediction = np.zeros(len(test))  
-  # for i in range(len(test)):
-  #   if 
-  
+  find_majority(x_train, y_label, k, test, neighbors)
+
 
   # save pred_file
   # np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
