@@ -27,18 +27,20 @@ def find_neighbors(x_train, y_label, test, k):
     
   return Predict_Neighbors
 
-# find the majority of labels to predict
-def find_majority(x_train, y_label, k, test, neighbors):
-  prediction = [np.zeros(0)]
-  for i in range(len(test)):
-    label, count = np.unique(neighbors[i], return_counts = True)
-    # print("label: ",label)
-    # print("count: ",count)
-    # print("max count: ", label[np.argmax(count)])
+# # find the majority of labels to predict
+# def find_majority(test, neighbors):
+#   prediction = np.zeros(len(test))
+#   temp = np.zeros(0)
 
-    prediction = label[np.argmax(count)]
-    
-  # return prediction
+#   for i in range(len(test)):
+#     label, count = np.unique(neighbors[i], return_counts = True)
+#     # print("label: ",label)
+#     # print("count: ",count)
+#     # print("max count: ", label[np.argmax(count)])
+#     temp = label[np.argmax(count)]
+#     prediction[i] = temp
+#   # print(prediction)
+#   return prediction
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
 
@@ -61,11 +63,20 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
     labels = find_neighbors(x_train, y_label, test_value, k)
     neighbors.append(labels)
 
-  find_majority(x_train, y_label, k, test, neighbors)
+  prediction = np.zeros(len(test))
+  temp = np.zeros(0)
 
+  for i in range(len(test)):
+    label, count = np.unique(neighbors[i], return_counts = True)
+    # print("label: ",label)
+    # print("count: ",count)
+    # print("max count: ", label[np.argmax(count)])
+    temp = label[np.argmax(count)]
+    prediction[i] = temp
+  # print(prediction)
 
   # save pred_file
-  # np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
+  np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
 
 # define other functions here
 if __name__ == '__main__':
