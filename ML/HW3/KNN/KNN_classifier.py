@@ -29,16 +29,15 @@ def find_neighbors(x_train, y_label, test, k):
 
 # find the majority of labels to predict
 def find_majority(x_train, y_label, k, test, neighbors):
-  
-  print(type(neighbors[0]))
-
+  prediction = [np.zeros(0)]
   for i in range(len(test)):
-    arr = neighbors[i]
-    for j in range(1, 9):
-      if (np.count_nonzero(arr == j) != 0):
-        count = np.count_nonzero(arr == j)
-        
-  
+    label, count = np.unique(neighbors[i], return_counts = True)
+    # print("label: ",label)
+    # print("count: ",count)
+    # print("max count: ", label[np.argmax(count)])
+
+    prediction = label[np.argmax(count)]
+    
   # return prediction
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
