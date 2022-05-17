@@ -7,7 +7,7 @@ def euclidean_distance(x1, x2):
   return np.sqrt(np.sum(x1 - x2)**2)  
 
 # To find the k neighbor's label
-def find_neighbors(x_train, y_label, test, k):
+def find_neighbors(x_train, y_label, test_data_file, k):
 
   # Predict neighbor = k-th closest neighbors
   Predict_Neighbors = np.zeros(k)
@@ -17,7 +17,7 @@ def find_neighbors(x_train, y_label, test, k):
 
   # find the distance and use index to find the k-th closest neighbors
   for i in range(len(x_train)):
-    distance = euclidean_distance(x_train[i], test)
+    distance = euclidean_distance(x_train[i], test_data_file)
     temp[i] = distance
   index = temp.argsort()
   
@@ -26,21 +26,6 @@ def find_neighbors(x_train, y_label, test, k):
     Predict_Neighbors[j] = y_label[index[j]]
     
   return Predict_Neighbors
-
-# # find the majority of labels to predict
-# def find_majority(test, neighbors):
-#   prediction = np.zeros(len(test))
-#   temp = np.zeros(0)
-
-#   for i in range(len(test)):
-#     label, count = np.unique(neighbors[i], return_counts = True)
-#     # print("label: ",label)
-#     # print("count: ",count)
-#     # print("max count: ", label[np.argmax(count)])
-#     temp = label[np.argmax(count)]
-#     prediction[i] = temp
-#   # print(prediction)
-#   return prediction
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
 
@@ -53,27 +38,27 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   x_train, y_label = x[:train_test_split], y[:train_test_split]
   test, test_label = x[train_test_split:], y[train_test_split:]
 
+  #store test into test_data_file
+  test_data_file = test
+
   # set k-th closest
   k = 3
 
   # array of neighbors labels(rough before applying majority rule)
   neighbors = []
-  for i in range(len(test)):
-    test_value = test[i, :]
+  for i in range(len(test_data_file)):
+    test_value = test_data_file[i, :]
     labels = find_neighbors(x_train, y_label, test_value, k)
     neighbors.append(labels)
 
-  prediction = np.zeros(len(test))
+  prediction = np.zeros(len(test_data_file))
   temp = np.zeros(0)
 
-  for i in range(len(test)):
+  for i in range(len(test_data_file)):
     label, count = np.unique(neighbors[i], return_counts = True)
-    # print("label: ",label)
-    # print("count: ",count)
-    # print("max count: ", label[np.argmax(count)])
     temp = label[np.argmax(count)]
     prediction[i] = temp
-  # print(prediction)
+  print("prediction =", prediction == test_label)
 
   # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
