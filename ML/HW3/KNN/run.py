@@ -4,10 +4,11 @@ from math import sqrt
 
 # Calculate the Euclidean distance between two vectors
 def euclidean_distance(x1, x2):
-  return np.sqrt(np.sum(x1 - x2)**2)  
+  euclidean_distance = np.sum(pow((x1 - x2), 2))
+  return np.sqrt(euclidean_distance)  
 
 # To find the k neighbor's label
-def find_neighbors(x_train, y_label, test_data_file, k):
+def find_neighbors(x_train, y_label, test, k):
 
   # Predict neighbor = k-th closest neighbors
   Predict_Neighbors = np.zeros(k)
@@ -17,14 +18,14 @@ def find_neighbors(x_train, y_label, test_data_file, k):
 
   # find the distance and use index to find the k-th closest neighbors
   for i in range(len(x_train)):
-    distance = euclidean_distance(x_train[i], test_data_file)
+    distance = euclidean_distance(x_train[i], test)
     temp[i] = distance
-  index = temp.argsort()
+    index = temp.argsort()
   
   # find the k-th closest label
   for j in range(k):
     Predict_Neighbors[j] = y_label[index[j]]
-    
+
   return Predict_Neighbors
 
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
@@ -37,29 +38,32 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   test = np.loadtxt(test_data_file, delimiter=',')
 
   # set k-th closest
-  k = 2
+  k = 1
 
   # array of neighbors labels(rough before applying majority rule)
   neighbors = []
   for i in range(len(test)):
+    # to get each row line 
     test_value = test[i, :]
     labels = find_neighbors(x_train, y_label, test_value, k)
     neighbors.append(labels)
 
   prediction = np.zeros(len(test))
   temp = np.zeros(0)
-
   for i in range(len(test)):
+    # label is unique labels in the array, count is how many labels  
     label, count = np.unique(neighbors[i], return_counts = True)
     temp = label[np.argmax(count)]
     prediction[i] = temp
 
-  #test
-  print("....", neighbors[1])
-  print("prediction: ", prediction)
-  print("y_label: ", y_label)
-
-  print("prediction =", prediction == y_label)
+  # test
+  print("Prediction = truth _______________________________________________________ \n", prediction == y_label)
+  print("Prediction _______________________________________________________________ \n", prediction)
+  print("Truth ____________________________________________________________________ \n", y_label)
+  
+  # compute the accuracy
+  accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
+  print("accuracy _________________________________________________________________ \n", accuracy)
 
   # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")

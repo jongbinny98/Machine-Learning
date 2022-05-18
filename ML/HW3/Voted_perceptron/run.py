@@ -91,26 +91,29 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
 
   # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
+  
+  acc = np.sum(np.equal(test_label, prediction)) / len(test_label)
+  
+  print(acc)
+#   main(prediction, test_label)
 
-  main(prediction, test_label)
+# #prediction and test_label = 10 percent truth label
+# def main(prediction, test_label):
 
-#prediction and test_label = 10 percent truth label
-def main(prediction, test_label):
+#     cal = np.zeros((2, 2), dtype = int)
 
-    cal = np.zeros((2, 2), dtype = int)
-
-    # print in 2x2 matrix tp for 00, 11
-    for i in range (np.size(test_label)):
-        pred = int(prediction[i])
-        true = int(test_label[i])
-        cal[pred][true] += 1
-    print(cal)
+#     # print in 2x2 matrix tp for 00, 11
+#     for i in range (np.size(test_label)):
+#         pred = int(prediction[i])
+#         true = int(test_label[i])
+#         cal[pred][true] += 1
+#     print(cal)
     
-    TP_0 = cal[0][0]
-    TP_1 = cal[1][1]
+#     TP_0 = cal[0][0]
+#     TP_1 = cal[1][1]
 
-    accuracy = (TP_0 + TP_1) / np.size(test_label)
-    print("accuracy: ", accuracy)
+#     accuracy = (TP_0 + TP_1) / np.size(test_label)
+#     print("accuracy: ", accuracy)
 
 if __name__ == '__main__':
 
