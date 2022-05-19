@@ -1,4 +1,5 @@
 # import the required packages here 
+from enum import unique
 import numpy as np
 from math import sqrt
 
@@ -38,7 +39,7 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   test = np.loadtxt(test_data_file, delimiter=',')
 
   # set k-th closest
-  k = 1
+  k = 3
 
   # array of neighbors labels(rough before applying majority rule)
   neighbors = []
@@ -47,13 +48,18 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
     test_value = test[i, :]
     labels = find_neighbors(x_train, y_label, test_value, k)
     neighbors.append(labels)
-
+  
   prediction = np.zeros(len(test))
   temp = np.zeros(0)
+
   for i in range(len(test)):
-    # label is unique labels in the array, count is how many labels  
-    label, count = np.unique(neighbors[i], return_counts = True)
-    temp = label[np.argmax(count)]
+    ''' np.unique from numpy.unique
+    return_counts: If return_counts is True, also return the number of times each unique item appears in ar.
+    values: the sorted unique elements of an array
+    counts: the number of times each unique item appears in ar
+    ''' 
+    values, count = np.unique(neighbors[i], return_counts = True)
+    temp = values[np.argmax(count)]
     prediction[i] = temp
 
   # test
@@ -61,9 +67,9 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   print("Prediction _______________________________________________________________ \n", prediction)
   print("Truth ____________________________________________________________________ \n", y_label)
   
-  # compute the accuracy
-  accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
-  print("accuracy _________________________________________________________________ \n", accuracy)
+  # # compute the accuracy
+  # accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
+  # print("accuracy _________________________________________________________________ \n", accuracy)
 
   # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
