@@ -68,8 +68,8 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
   print("Truth ____________________________________________________________________ \n", y_label)
   
   # # compute the accuracy
-  # accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
-  # print("accuracy _________________________________________________________________ \n", accuracy)
+  accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
+  print("accuracy _________________________________________________________________ \n", accuracy)
 
   # save pred_file
   np.savetxt(pred_file, prediction, fmt='%1d', delimiter=",")
