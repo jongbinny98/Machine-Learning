@@ -1,5 +1,4 @@
 # import the required packages here 
-from enum import unique
 import numpy as np
 from math import sqrt
 
@@ -32,14 +31,23 @@ def find_neighbors(x_train, y_label, test, k):
 def run(Xtrain_file, Ytrain_file, test_data_file, pred_file): 
 
   # read data from Xtrain_file, Ytrain_file.
-  x_train = np.loadtxt(Xtrain_file, delimiter=',')
-  y_label = np.loadtxt(Ytrain_file, delimiter=',')
+  x = np.loadtxt(Xtrain_file, delimiter=',')
+  y = np.loadtxt(Ytrain_file, delimiter=',')
 
-  # read data from test_data_file(Xtrain.csv)
-  test = np.loadtxt(test_data_file, delimiter=',')
+  np.random.seed(0)
+  np.random.shuffle(x)
+  np.random.seed(0)
+  np.random.shuffle(y)
+  # # read data from test_data_file(Xtrain.csv)
+  # test = np.loadtxt(test_data_file, delimiter=',')
+  
+  train_test_split = int(0.8 * len(x))
+  x_train, y_label = x[:train_test_split], y[:train_test_split]
+  test, test_label = x[train_test_split:], y[train_test_split:]
+  
 
   # set k-th closest
-  k = 3
+  k = 30
 
   # array of neighbors labels(rough before applying majority rule)
   neighbors = []
@@ -63,12 +71,12 @@ def run(Xtrain_file, Ytrain_file, test_data_file, pred_file):
     prediction[i] = temp
 
   # test
-  print("Prediction = truth _______________________________________________________ \n", prediction == y_label)
+  print("Prediction = truth _______________________________________________________ \n", prediction == test_label)
   print("Prediction _______________________________________________________________ \n", prediction)
-  print("Truth ____________________________________________________________________ \n", y_label)
+  print("Truth ____________________________________________________________________ \n", test_label)
   
   # # compute the accuracy
-  accuracy = np.sum(np.equal(y_label, prediction)) / len(y_label)
+  accuracy = np.sum(np.equal(test_label, prediction)) / len(test_label)
   print("accuracy _________________________________________________________________ \n", accuracy)
 
   # save pred_file
