@@ -15,6 +15,7 @@ class BoostingClassifier:
     """
     def __init__(self):
         # initialize the parameters here
+        
         pass
     
 
@@ -50,4 +51,12 @@ class BoostingClassifier:
                  In this sample submission file, we generate all ones predictions.
         """
         return np.ones(X.shape[0], dtype=int)
+    
+    # def class_exemplar(self, weight, data):
+    #     k = self.X_train.shape[0]
+        
+    #     for k in range(self.X_train.shape[0]):
+    #         exemplar = np.sum()
+        
+    # return exemplar
 
