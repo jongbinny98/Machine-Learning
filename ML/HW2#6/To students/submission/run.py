@@ -64,7 +64,7 @@ def run (train_input_dir,train_label_dir,test_input_dir,pred_file):
     # load test data 
     test_data = np.loadtxt(test_input_dir, skiprows=0)
 
-    # predict by comapring with threshold
+    # predict by comparing with threshold
     n = test_data.shape[0] #75x3 = 75
     prediction = np.zeros((n, 1))
     for i in range(n):
