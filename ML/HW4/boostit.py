@@ -1,53 +1,70 @@
 import numpy as np
 import math
 
-
 class LinearClassifier:
 
     def __init__(self):
+    
+        self.t = []  # threshold for class prediction
+        self.w = []          # orthogonal vector to threshold 
+
+    def train(self, X, y, weights):
+
+        n_features = X.shape[1]
+        n_examples = X.shape[0]
+    
+        x = np.zeros(shape = (n_examples, n_features))
+
+        # X * weights
+        for i in range(n_examples):
+            x[i] = X[i] * weights[i]
         
-        self.w = None          # orthogonal vector to threshold 
+        # class -1
+        class0 = x[y == -1]
+        class0_weights = weights[y == -1]
 
+        # class 1
+        class1 = x[y == 1]
+        class1_weights = weights[y == 1]
 
-    def train(self, X, y, w):
-        # class for each class -1 and 1
-        class0 = X[y == -1]
-        class1 = X[y == 1]
+        # find the centroid
+        centroid0 = self.class_exemplar(class0_weights, class0)
+        centroid1 = self.class_exemplar(class1_weights, class1)
 
-        # centroid for each class
-        centroid0 = self.__compute_centroid(class0, w)
-        centroid1 = self.__compute_centroid(class1, w)
+        # find mid point
+        m = []
+        m = (centroid0 + centroid1)/2
+        print("mid: ", m)
 
-        # find weight vector 
-        self.w = [0, 0]
-        self.w[0] = centroid0 - centroid1
-        
-        # find mid point 
-        self.m = [0, 0]
-        self.m[0] = (centroid0 + centroid1)/2
+        # find the weight vector
+        self.w = []
+        self.w = centroid0 - centroid1
+        print("w vector", self.w)
 
-        # find threshold w*m to compare
-        self.t = [0, 0]
-        self.t[0] = np.dot(self.w[0], self.m[0])
+        # find threshold
+        self.t = []
+        self.t = np.dot(self.w, m)
+        print("threshold:", self.t)
 
         return self
-        
 
-    def predict(self, X, w, t):
-        
-        n = X.shape[0]
-        pred = np.zeros((n, 1))
-        
-        for i in range(n):
-            if np.dot(X[i], w[0]) > t[0]:
+    def predict(self, X):
+        # print(X)
+        n_samples = X.shape[0]
+        pred = np.zeros((n_samples, 1))
+        # print("X[0]",X[0])
+        # print("Xw", np.dot(X[0], self.w))
+
+        for i in range(n_samples):    
+            if np.dot(X[i], self.w) > self.t:
                 pred[i] = -1
             else:
                 pred[i] = 1
-
+        # print(pred)
         return pred
 
     def error(self, X, y, weights):
-
+        
         pred = self.predict(X)
         
         TP = 0
@@ -70,50 +87,97 @@ class LinearClassifier:
                 else:
                     FP += 1 * weights[i]
 
+        accuracy = (TP + TN) / (TP + FN + FP + TN)
+        precision = TP / (TP + FP) if ((TP + FP) > 0) else 0
+        recall = TP / (TP + FN) if ((TP + FN)) > 0 else 0
+        f1 = 2 * precision * recall / (precision + recall) if ((precision + recall) > 0) else 0
+        final_score = 50 * accuracy + 50 * f1
         err = 1 - ( (TP + TN) / (TP + FN + FP + TN) )
-
+        print("accuracy: ",accuracy)
+        print("precision: ", precision)
+        print("final score: ", final_score)
         return err, pred
 
-    def __compute_centroid(self, w, X):
+    def class_exemplar(self, w, x):
+        centroid = np.sum(x, axis = 0) / np.sum(w)
+        return centroid
 
-        c = np.sum(w * X, axis=0) / np.sum(w, axis=0)
-        return c
-
-
-# boosting algorithm
 class BoostingClassifier:
-    # initialize the parameters here
-    def __init__(self):
 
-        self.w = None
-        # esemble size
+    def __init__(self):
+        
         self.T = 5
-        # learning algorithm
-        self.A = LinearClassifier()
+        self.A = LinearClassifier
 
         # create an empty list of models
-        self.M = np.zeros(self.T)
-        self.alpha = np.zeros(self.T)
+        self.M = [None for i in range(self.T + 1)]
+        self.alpha = [None for i in range(self.T + 1)]
 
     def fit(self, X, y):
 
-        w = np.empty(X.shape[0])
+        n_examples = X.shape[0]   # number of samples in training set
 
-        # initialize weights
-        w[1] = 1 / X.shape[0]
-        
-        for i in range(1, self.T):
-            if True:
-                print("Iteration " + str(i) + ":")
-            self.M[i] = self.A.train(X, y, w[i])
-            err, pred = self.M[i].error(X, y, w[i])
+        w = np.zeros(shape=(self.T+1, n_examples))
+        # print(w.shape)
+        # print(w[1])
+        # print("-----------------------------------------------")
+
+        w[1] = np.array([1 / n_examples for i in range(n_examples)])  # initialize weights 
+        # print(w[1])
+        # iterate over T training instances
+        for t in range(1, self.T + 1):
 
             if True:
-                print("Error = " + str(err))
+                print("Iteration " + str(t) + ":")
+
+            # find the model that has trained 
+            self.M[t] = self.A().train(X, y, w[t])  
+            # find the error rate
+            error, pred = self.M[t].error(X, y, w[t])    
+            
+            if True:
+                print("Error = " + str(error))
+            
+            # if err is more than half, then it will harm it so break
+            if error >= 1/2:                   
+                self.T = t - 1
+                break;
+
+            # compute the alpha
+            self.alpha[t] = (1/2) * math.log((1 - error) / error)  
+            
+            if True:
+                print("Alpha = " + str(self.alpha[t]))
+
+                f_inc = 1 / (2 * error)
+                f_dec = 1 / (2 * (1 - error))
+
+                print("Factor to increase weights = " + str(f_inc))
+                print("Factor to decrease weights = " + str(f_dec))
+
+            # increase or decrease the weights
+            if t != self.T:
+                for i in range(n_examples):
+                    # for misclassified instances
+                    if y[i] * pred[i] < 0:  
+                        w[t+1][i] = w[t][i] / (2 * error)
+                    # for correctly classified instances
+                    else:                               
+                       w[t+1][i] = w[t][i] / (2 * (1 - error))
 
         return self
 
+    # prediction
     def predict(self, X):
+
+        prediction = np.zeros(shape=(X.shape[0], 1))
+
+        for i in range(1, self.T+1):
+            model = np.sign(self.alpha[i] * self.M[i].predict(X))
+            prediction += model
         
-        return np.ones(X.shape[0], dtype=int)
-    
+        return np.sign(prediction)
+
+
+
+

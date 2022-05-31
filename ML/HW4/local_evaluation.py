@@ -54,6 +54,7 @@ with open(test_set, 'rb') as f:
     y_test = np.load(f)
 
 clf = BoostingClassifier().fit(X_train, y_train)
+
 # this is how you get your predictions
 y_pred = clf.predict(X_test)
 acc, precision, recall, f1, final_score = evaluation_score(y_pred, y_test)
