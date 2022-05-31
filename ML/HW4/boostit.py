@@ -128,7 +128,7 @@ class BoostingClassifier:
         for t in range(1, self.T + 1):
 
             if True:
-                print("Iteration " + str(t) + ":")
+                print("\nIteration " + str(t) + ":")
 
             # find the model that has trained 
             self.M[t] = self.A().train(X, y, w[t])  
@@ -170,12 +170,11 @@ class BoostingClassifier:
     # prediction
     def predict(self, X):
 
-        prediction = np.zeros(shape=(X.shape[0], 1))
+        prediction = np.zeros(shape = (X.shape[0], 1))
 
-        for i in range(1, self.T+1):
-            model = np.sign(self.alpha[i] * self.M[i].predict(X))
-            prediction += model
-        
+        for i in range(1, self.T):
+            prediction += self.alpha[i] * self.M[i].predict(X)
+           
         return np.sign(prediction)
 
 
