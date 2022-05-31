@@ -1,5 +1,94 @@
 
 import numpy as np
+# class Voted_perceptron:
+    
+#     def __init__(self):
+#         self.t = 0
+#         self.T = 5
+#         self.k = 0
+#         self.c = [0]
+
+#     # find the error rate
+#     def error(self, X, y, weights):
+        
+#         pred = self.predict(X, y ,weights)
+        
+#         TP = 0
+#         FN = 0
+#         TN = 0
+#         FP = 0
+
+#         # confusion matrix form local_evaluation.py
+#         for i in range(len(y)):
+#             pred_label = pred[i]
+#             gt_label = y[i]
+
+#             if int(pred_label) == -1:
+#                 if pred_label == gt_label:
+#                     TN += 1 * weights[i]
+#                 else:
+#                     FN += 1 * weights[i]
+#             else:
+#                 if pred_label == gt_label:
+#                     TP += 1 * weights[i]
+#                 else:
+#                     FP += 1 * weights[i]
+
+#         # calculation
+#         accuracy = (TP + TN) / (TP + FN + FP + TN)
+#         precision = TP / (TP + FP) if ((TP + FP) > 0) else 0
+#         recall = TP / (TP + FN) if ((TP + FN)) > 0 else 0
+#         f1 = 2 * precision * recall / (precision + recall) if ((precision + recall) > 0) else 0
+#         final_score = 50 * accuracy + 50 * f1
+
+#         # error rate
+#         err = 1 - ( (TP + TN) / (TP + FN + FP + TN) )
+
+#         print("accuracy: ", accuracy)
+#         print("precision: ", precision)
+#         print("final score: ", final_score)
+#         print("--------------------------------------")
+
+#         return err, pred
+
+#     # train
+#     def train(self, X, y, w):
+
+#         w = [np.zeros(X.shape[1])]
+
+#         # voted perceptron
+#         while self.t < self.T:
+#             # for each training example
+#             for i in range(len(X)):
+#                 inner = np.dot(w[self.k], X[i])
+#                 pred = np.sign(X[i] * inner)
+#             # misclassification
+#             if pred <= 0:
+#                 w.append(w[self.k] + np.dot(y[i], X[i]))
+#                 self.c.append(1)
+#                 self.k += 1
+#             else:
+#                 self.c[self.k] += 1
+#         self.t += 1
+
+#         return self
+
+#     def predict(self, X, y, w):
+
+#         # voted perceptron
+#         while self.t < self.T:
+#             # for each training example
+#             for i in range(len(X)):
+#                 inner = np.dot(w[self.k], X[i])
+#                 pred = np.sign(y[i] * inner)
+#                 # misclassification
+#                 if pred <= 0:
+#                     w.append(w[self.k] + np.dot(y[i], X[i]))
+#                     self.c.append(1)
+#                     self.k += 1
+#                 else:
+#                     self.c[self.k] += 1
+#             self.t += 1
 
 '''
 This is basic linear classifier from hw 2
@@ -27,6 +116,7 @@ class LinearClassifier:
         FN = 0
         TN = 0
         FP = 0
+
         # confusion matrix form local_evaluation.py
         for i in range(len(y)):
             pred_label = pred[i]
@@ -42,18 +132,21 @@ class LinearClassifier:
                     TP += 1 * weights[i]
                 else:
                     FP += 1 * weights[i]
+
         # calculation
         accuracy = (TP + TN) / (TP + FN + FP + TN)
         precision = TP / (TP + FP) if ((TP + FP) > 0) else 0
         recall = TP / (TP + FN) if ((TP + FN)) > 0 else 0
         f1 = 2 * precision * recall / (precision + recall) if ((precision + recall) > 0) else 0
         final_score = 50 * accuracy + 50 * f1
+
         # error rate
         err = 1 - ( (TP + TN) / (TP + FN + FP + TN) )
 
         print("accuracy: ", accuracy)
         print("precision: ", precision)
         print("final score: ", final_score)
+        print("--------------------------------------")
 
         return err, pred
 
@@ -115,7 +208,7 @@ class LinearClassifier:
         return pred
 
 '''
-boosting persudo code 5-24.17 - train an ensemble of binary classifier from reweighted training set 
+boosting Pseudo code 5-24.17 - train an ensemble of binary classifier from re-weighted training set 
 
 input - data set X, ensemble size T, learning algorithm A(linear classifier)
 output - weighted ensemble of models
@@ -133,12 +226,11 @@ class BoostingClassifier:
         # confidence for this model
         self.alpha = [None for i in range(self.T + 1)]
 
-    # train
+    # boosting algorithm to train
     def fit(self, X, y):
-        print("M:", self.M)
-        print("alpha: ", self.alpha)
-        print("________________________________")
+       
         n_examples = X.shape[0]
+        # initialize weights (Ensemble size + 1, n_example) ----> (6, 80)
         w = np.zeros((self.T + 1, n_examples))
         
         # start from uniform weight w1i = 1/dataset
@@ -146,17 +238,17 @@ class BoostingClassifier:
         
         # run algorithm on data X with weight wti to produce a model Mt
         for t in range(1, self.T + 1):
-
-            if True:
-                print(f"\nIteration {t}:")
+            
+            # print num of current iteration
+            print(f"\nIteration {t}:")
 
             # find the model that has trained 
             self.M[t] = self.A().train(X, y, w[t])  
             # find the error rate
             error, pred = self.M[t].error(X, y, w[t])    
             
-            if True:
-                print(f"Error = {error}")
+            # print error 
+            print(f"Error = {error}")
             
             # if err is more than half, then it will harm it so break
             if error >= 1/2:                   
@@ -164,27 +256,30 @@ class BoostingClassifier:
                 break;
 
             # compute the confidence of the model
-            self.alpha[t] = (1/2) * np.log((1 - error) / error)  
+            self.alpha[t] = (1 / 2) * np.log((1 - error) / error)  
             
-            if True:
-                print(f"Alpha = {self.alpha[t]}")
-
-                # to print factor to increase and decrease
-                factor_increase = 1 / (2 * error)
-                factor_decrease = 1 / (2 * (1 - error))
-
-                print(f"Factor to increase weights = {factor_increase}")
-                print(f"Factor to decrease weights = {factor_decrease}")
+            # print confidence of the model 
+            print(f"Alpha = {self.alpha[t]}")
 
             # increase or decrease the weights
             if t < self.T:
                 for i in range(n_examples):
                     # for misclassified instances
                     if (y[i] * pred[i]) < 0:  
-                        w[t+1][i] = w[t][i] / (2 * error)
+                        # increase weights for all xi in D
+                        w[t + 1][i] = w[t][i] / (2 * error)
                     # for correctly classified instances
-                    else:                               
-                       w[t+1][i] = w[t][i] / (2 * (1 - error))
+                    else:
+                        # decrease weights for all xi in D
+                        w[t + 1][i] = w[t][i] / (2 * (1 - error))
+
+            # print factor to increase and decrease
+            factor_increase = 1 / (2 * error)
+            factor_decrease = 1 / (2 * (1 - error))
+
+            print(f"Factor to increase weights = {factor_increase}")
+            print(f"Factor to decrease weights = {factor_decrease}")
+
         return self
 
     # prediction
@@ -192,7 +287,7 @@ class BoostingClassifier:
 
         prediction = np.zeros((X.shape[0], 1))
 
-        # return np.sum of alpha Mx
+        # return sum of (alpha * Mx) ---> sign(output)
         for i in range(1, self.T):
             prediction += self.alpha[i] * self.M[i].predict(X)
            
