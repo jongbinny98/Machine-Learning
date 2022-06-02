@@ -1,94 +1,5 @@
 
 import numpy as np
-# class Voted_perceptron:
-    
-#     def __init__(self):
-#         self.t = 0
-#         self.T = 5
-#         self.k = 0
-#         self.c = [0]
-
-#     # find the error rate
-#     def error(self, X, y, weights):
-        
-#         pred = self.predict(X, y ,weights)
-        
-#         TP = 0
-#         FN = 0
-#         TN = 0
-#         FP = 0
-
-#         # confusion matrix form local_evaluation.py
-#         for i in range(len(y)):
-#             pred_label = pred[i]
-#             gt_label = y[i]
-
-#             if int(pred_label) == -1:
-#                 if pred_label == gt_label:
-#                     TN += 1 * weights[i]
-#                 else:
-#                     FN += 1 * weights[i]
-#             else:
-#                 if pred_label == gt_label:
-#                     TP += 1 * weights[i]
-#                 else:
-#                     FP += 1 * weights[i]
-
-#         # calculation
-#         accuracy = (TP + TN) / (TP + FN + FP + TN)
-#         precision = TP / (TP + FP) if ((TP + FP) > 0) else 0
-#         recall = TP / (TP + FN) if ((TP + FN)) > 0 else 0
-#         f1 = 2 * precision * recall / (precision + recall) if ((precision + recall) > 0) else 0
-#         final_score = 50 * accuracy + 50 * f1
-
-#         # error rate
-#         err = 1 - ( (TP + TN) / (TP + FN + FP + TN) )
-
-#         print("accuracy: ", accuracy)
-#         print("precision: ", precision)
-#         print("final score: ", final_score)
-#         print("--------------------------------------")
-
-#         return err, pred
-
-#     # train
-#     def train(self, X, y, w):
-
-#         w = [np.zeros(X.shape[1])]
-
-#         # voted perceptron
-#         while self.t < self.T:
-#             # for each training example
-#             for i in range(len(X)):
-#                 inner = np.dot(w[self.k], X[i])
-#                 pred = np.sign(X[i] * inner)
-#             # misclassification
-#             if pred <= 0:
-#                 w.append(w[self.k] + np.dot(y[i], X[i]))
-#                 self.c.append(1)
-#                 self.k += 1
-#             else:
-#                 self.c[self.k] += 1
-#         self.t += 1
-
-#         return self
-
-#     def predict(self, X, y, w):
-
-#         # voted perceptron
-#         while self.t < self.T:
-#             # for each training example
-#             for i in range(len(X)):
-#                 inner = np.dot(w[self.k], X[i])
-#                 pred = np.sign(y[i] * inner)
-#                 # misclassification
-#                 if pred <= 0:
-#                     w.append(w[self.k] + np.dot(y[i], X[i]))
-#                     self.c.append(1)
-#                     self.k += 1
-#                 else:
-#                     self.c[self.k] += 1
-#             self.t += 1
 
 '''
 This is basic linear classifier from hw 2
@@ -104,7 +15,7 @@ class LinearClassifier:
     def class_exemplar(self, w, x):
         # instead of using mean(), use the equation 1/sum(w) * sum(w*x)
         centroid = np.sum(x, axis = 0) / np.sum(w)
-
+        # centroid - 0.5 ---->95% final --->51.25% colab
         return centroid
 
     # find the error rate
@@ -157,7 +68,7 @@ class LinearClassifier:
         n_examples = X.shape[0]
     
         x = np.zeros((n_examples, n_features))
-
+            
         # X * weights
         for i in range(n_examples):
             x[i] = X[i] * weights[i]
@@ -169,7 +80,7 @@ class LinearClassifier:
         # class 1
         class1 = x[y == 1]
         class1_weights = weights[y == 1]
-
+        
         # find the centroid
         centroid0 = self.class_exemplar(class0_weights, class0)
         centroid1 = self.class_exemplar(class1_weights, class1)
@@ -193,11 +104,9 @@ class LinearClassifier:
 
     # prediction
     def predict(self, X):
-        # print(X)
+
         n_samples = X.shape[0]
         pred = np.zeros((n_samples, 1))
-        # print("X[0]",X[0])
-        # print("Xw", np.dot(X[0], self.w))
 
         for i in range(n_samples):    
             if np.dot(X[i], self.w) > self.t:
@@ -222,9 +131,9 @@ class BoostingClassifier:
         # learning algorithm(Linear Classifier)
         self.A = LinearClassifier
         # model that need to be output 
-        self.M = [None for i in range(self.T + 1)]
+        self.M = [None] * (self.T + 1)
         # confidence for this model
-        self.alpha = [None for i in range(self.T + 1)]
+        self.alpha = [None] * (self.T + 1)
 
     # boosting algorithm to train
     def fit(self, X, y):
@@ -234,7 +143,20 @@ class BoostingClassifier:
         w = np.zeros((self.T + 1, n_examples))
         
         # start from uniform weight w1i = 1/dataset
-        w[1] = np.array([1 / n_examples for i in range(n_examples)])
+        w[1] = np.full(shape = n_examples, fill_value = 1 / n_examples, dtype = np.float)
+
+        split = int(0.08 * len(y))
+        y1 = y[:split]
+        y2 = y[split:]
+        Y = np.concatenate((y1, y2), axis = None)
+
+        for i in range(len(y1)):
+            if y1[i] == 1:
+                y1[i] = -1
+            else:
+                y1[i] = 1
+
+        # print("compare:", Y == y)
         
         # run algorithm on data X with weight wti to produce a model Mt
         for t in range(1, self.T + 1):
@@ -242,8 +164,12 @@ class BoostingClassifier:
             # print num of current iteration
             print(f"\nIteration {t}:")
 
-            # find the model that has trained 
-            self.M[t] = self.A().train(X, y, w[t])  
+            # tried to make noise 
+            if (t == 1):
+                self.M[1] = self.A().train(X, Y, w[1])
+            else:
+                # find the model that has trained 
+                self.M[t] = self.A().train(X, y, w[t])
             # find the error rate
             error, pred = self.M[t].error(X, y, w[t])    
             
