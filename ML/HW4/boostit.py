@@ -54,10 +54,11 @@ class LinearClassifier:
         # error rate
         err = 1 - ( (TP + TN) / (TP + FN + FP + TN) )
 
-        print("accuracy: ", accuracy)
-        print("precision: ", precision)
-        print("final score: ", final_score)
-        print("--------------------------------------")
+        print("Accuracy:", accuracy)
+        print("Precision:", precision)
+        print("Recall", recall)
+        print("Final score:", final_score)
+        print("Error rate", err)
 
         return err, pred
 
@@ -88,17 +89,17 @@ class LinearClassifier:
         # find mid point
         m = []
         m = (centroid0 + centroid1)/2
-        print("mid: ", m)
+        # print("mid: ", m)
 
         # find the weight vector
         self.w = []
         self.w = centroid0 - centroid1
-        print("w vector", self.w)
+        # print("w vector", self.w)
 
         # find threshold
         self.t = []
         self.t = np.dot(self.w, m)
-        print("threshold:", self.t)
+        # print("threshold:", self.t)
 
         return self
 
@@ -145,7 +146,7 @@ class BoostingClassifier:
         # start from uniform weight w1i = 1/dataset
         w[1] = np.full(shape = n_examples, fill_value = 1 / n_examples, dtype = np.float)
 
-        split = int(0.08 * len(y))
+        split = int(0.1 * len(y))
         y1 = y[:split]
         y2 = y[split:]
         Y = np.concatenate((y1, y2), axis = None)
@@ -156,7 +157,7 @@ class BoostingClassifier:
             else:
                 y1[i] = 1
 
-        # print("compare:", Y == y)
+        print("compare:", Y == y)
         
         # run algorithm on data X with weight wti to produce a model Mt
         for t in range(1, self.T + 1):
@@ -166,15 +167,13 @@ class BoostingClassifier:
 
             # tried to make noise 
             if (t == 1):
-                self.M[1] = self.A().train(X, Y, w[1])
+                self.M[t] = self.A().train(X, Y, w[t])
             else:
                 # find the model that has trained 
                 self.M[t] = self.A().train(X, y, w[t])
+
             # find the error rate
             error, pred = self.M[t].error(X, y, w[t])    
-            
-            # print error 
-            print(f"Error = {error}")
             
             # if err is more than half, then it will harm it so break
             if error >= 1/2:                   
