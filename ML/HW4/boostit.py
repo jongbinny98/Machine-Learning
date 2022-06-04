@@ -1,5 +1,6 @@
 
 import numpy as np
+import random
 
 '''
 This is basic linear classifier from hw 2
@@ -128,7 +129,7 @@ class BoostingClassifier:
     def __init__(self):
 
         # Ensemble size
-        self.T = 5
+        self.T = 7
         # learning algorithm(Linear Classifier)
         self.A = LinearClassifier
         # model that need to be output 
@@ -145,6 +146,11 @@ class BoostingClassifier:
         
         # start from uniform weight w1i = 1/dataset
         w[1] = np.full(shape = n_examples, fill_value = 1 / n_examples, dtype = np.float)
+        #11,69
+        random.seed(99)
+        random.shuffle(y)
+        random.seed(99)
+        random.shuffle(X)
 
         split = int(0.1 * len(y))
         y1 = y[:split]
