@@ -146,10 +146,10 @@ class BoostingClassifier:
         
         # start from uniform weight w1i = 1/dataset
         w[1] = np.full(shape = n_examples, fill_value = 1 / n_examples, dtype = np.float)
-        #11,69
-        random.seed(99)
+        #11, 110
+        random.seed(237)
         random.shuffle(y)
-        random.seed(99)
+        random.seed(237)
         random.shuffle(X)
 
         split = int(0.1 * len(y))
