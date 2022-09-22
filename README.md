@@ -1,1 +1,1 @@
-# ucsc
+#Learning machine with some projects
