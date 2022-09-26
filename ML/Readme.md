@@ -1,8 +1,8 @@
-CSE142(Machine learning)
-
-University of California, Santa Cruz
-
-course work:
+<h2>
+CSE142(Machine learning) - University of California, Santa Cruz
+</h2>
+<hr>
+<br>
 
 hw2: build basic linear classifier
 
