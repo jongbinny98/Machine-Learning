@@ -1,9 +1,8 @@
-CSE144(Applied machine learning)
-
-University of California, Santa Cruz
-
-
-course work: applied the basic machine learning with using python and google colab.
+<h2>
+CSE144(Applied machine learning) - University of California, Santa Cruz
+</h2>
+<hr size = 3>
+<br>
 
 hw1: Song_prediction
 --> used dataset "Song_prediction" to learn how to pre processing the dataset and get
